@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>쉼&매너 - 충남대학교 흡연구역 & 상생 매너 앱 (카카오맵 통합본)</title>
+<style>
+:root{
+  --blue:#2563eb; --blue-bg:#dbeafe; --green:#16a34a; --green-bg:#dcfce7;
+  --red:#ef4444; --red-bg:#fee2e2; --amber:#d97706; --amber-bg:#fef3c7;
+  --purple:#7c3aed; --purple-bg:#ede9fe;
+  --ink:#0f172a; --sub:#475569; --muted:#94a3b8; --line:#e2e8f0; --bg:#f1f5f9;
+  --brand:#0d9488; --brand-dark:#0f766e;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+  background:linear-gradient(135deg,#d9f0ec,#e4ebfb);color:var(--ink);display:flex;align-items:center;justify-content:center;min-height:100vh}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font:inherit;color:inherit}
+
+.stage{display:flex;gap:48px;align-items:center;padding:16px}
+.intro{max-width:270px;color:var(--sub);font-size:14px;line-height:1.65}
+.intro h1{font-size:24px;color:var(--ink);margin-bottom:4px;letter-spacing:-.5px}
+.intro .tag{display:inline-block;background:#fff;border-radius:99px;padding:4px 10px;font-size:12px;font-weight:700;color:var(--brand-dark);margin-bottom:14px}
+.intro ul{margin:12px 0 0 18px}.intro li{margin-bottom:6px;font-size:13px}
+
+.phone{width:392px;height:812px;max-height:97vh;background:#0b1220;border-radius:52px;padding:12px;position:relative;
+  box-shadow:0 30px 60px rgba(15,23,42,.35),inset 0 0 0 2px #334155}
+.screen{position:relative;width:100%;height:100%;border-radius:40px;background:#fff;overflow:hidden;display:flex;flex-direction:column}
+.notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:104px;height:26px;background:#0b1220;border-radius:20px;z-index:70}
+.statusbar{height:46px;flex:none;display:flex;justify-content:space-between;align-items:flex-end;padding:0 28px 6px;font-size:14px;font-weight:700;background:#fff}
+.appbar{flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 16px 10px;background:#fff;border-bottom:1px solid var(--line)}
+.logo{font-size:19px;font-weight:800;letter-spacing:-.5px;color:var(--brand-dark)}
+.logo small{display:block;font-size:10.5px;font-weight:600;color:var(--muted);letter-spacing:0;margin-top:1px}
+.pointchip{background:var(--amber-bg);color:#92400e;font-weight:800;font-size:13px;padding:7px 12px;border-radius:99px}
+
+main{flex:1;position:relative;overflow:hidden;background:var(--bg)}
+#map{position:absolute;inset:0;z-index:0}
+
+.tab{position:absolute;inset:0;overflow-y:auto;display:none;padding-bottom:16px;background:var(--bg);z-index:10}
+.tab.active{display:block}
+.tab.overlay{background:none;overflow:visible;pointer-events:none;z-index:5;padding:0}
+.ui{pointer-events:auto}
+
+/* 지도 탭 UI */
+.maptop{position:absolute;top:0;left:0;right:0;pointer-events:none}
+.banner{display:flex;align-items:center;gap:8px;margin:10px 10px 0;padding:10px 12px;border-radius:14px;background:#fff1f2;border:1px solid #fecdd3;color:#be123c;font-size:12px;line-height:1.4;box-shadow:0 3px 10px rgba(0,0,0,.12)}
+.banner .x{margin-left:auto;font-weight:800;padding:2px 6px}
+.chips{display:flex;gap:6px;padding:8px 10px 0;overflow-x:auto}
+.chip{flex:none;padding:6px 11px;border-radius:99px;background:#fff;border:1px solid var(--line);font-size:12px;font-weight:700;display:flex;gap:5px;align-items:center;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+.chip i{width:9px;height:9px;border-radius:50%;display:block}
+.chip.off{opacity:.45}
+
+.pick-banner{margin:8px 10px 0;background:var(--ink);color:#fff;padding:10px 14px;border-radius:14px;font-size:12.5px;font-weight:700;display:none;align-items:center;justify-content:space-between;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.pick-banner.on{display:flex}
+.pick-banner button{background:rgba(255,255,255,.2);padding:4px 10px;border-radius:8px;font-size:12px;font-weight:800}
+
+.fabs{position:absolute;right:10px;bottom:76px;display:flex;flex-direction:column;gap:8px;z-index:12}
+.fab{background:#fff;color:var(--ink);padding:10px 14px;border-radius:99px;font-size:12.5px;font-weight:800;box-shadow:0 4px 12px rgba(0,0,0,.2);border:1px solid var(--line)}
+.fab.primary{background:var(--brand);color:#fff;border:none}
+.fab.danger{background:var(--red);color:#fff;border:none}
+
+.mapbottom{position:absolute;left:10px;right:10px;bottom:14px;background:#fff;border-radius:16px;padding:11px 14px;box-shadow:0 4px 14px rgba(0,0,0,.22);z-index:10;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:space-between}
+
+/* 공통 카드 & 버튼 */
+.card{background:#fff;border-radius:18px;margin:10px 12px;padding:14px;border:1px solid var(--line);box-shadow:0 1px 3px rgba(15,23,42,.05)}
+.card h4{font-size:15px;margin:6px 0 4px}
+.card p{font-size:13px;color:var(--sub);line-height:1.55}
+.row{display:flex;align-items:center;gap:6px}
+.sub{font-size:11.5px;color:var(--muted)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;font-size:11.5px;font-weight:800}
+.b-blue{background:var(--blue-bg);color:#1d4ed8}.b-green{background:var(--green-bg);color:#166534}.b-red{background:var(--red-bg);color:#b91c1c}.b-purple{background:var(--purple-bg);color:#5b21b6}
+.btn{padding:10px 12px;border-radius:12px;font-weight:800;font-size:13px;transition:.15s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--brand);color:#fff}
+.btn-ghost{background:#fff;border:1px solid var(--line);color:var(--sub)}
+.btn-up.on{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-down.on{background:var(--red);color:#fff;border-color:var(--red)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.w100{width:100%}
+.btns{display:flex;gap:8px;margin-top:10px}.btns .btn{flex:1}
+
+/* 투표 / 신고 탭 */
+.seg{display:flex;background:#e2e8f0;border-radius:14px;padding:4px;margin:12px 12px 0}
+.seg button{flex:1;padding:9px;border-radius:11px;font-size:13px;font-weight:800;color:var(--sub)}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.bar{height:8px;border-radius:99px;background:var(--red-bg);overflow:hidden;margin:6px 0 10px}
+.bar>i{display:block;height:100%;background:var(--green);border-radius:99px;transition:width .3s}
+.vstat{display:flex;gap:12px;font-size:12.5px;font-weight:800;margin-top:8px}
+.vstat .g{color:var(--green)}.vstat .r{color:var(--red)}.vstat .p{margin-left:auto;color:var(--sub)}
+.sphoto{width:100%;max-height:140px;object-fit:cover;border-radius:12px;margin-top:8px}
+
+/* 클린 동선 탭 */
+.rtop{position:absolute;top:0;left:0;right:0;margin:10px;padding:12px;z-index:12}
+.rf-row{display:flex;align-items:center;gap:8px}
+.rf-row .mk{width:34px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11.5px;font-weight:800;flex:none}
+.rpt{flex:1;font-size:12.5px;font-weight:700;color:var(--sub)}
+.rpt.ok{color:var(--ink)}
+.mini{padding:6px 10px;border-radius:9px;background:var(--bg);font-size:12px;font-weight:800;border:1px solid var(--line)}
+.rbottom{position:absolute;left:10px;right:10px;bottom:14px;z-index:12}
+.rbottom .card{margin:0;box-shadow:0 4px 16px rgba(0,0,0,.22)}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.opt{border-radius:12px;padding:10px;border:2px solid var(--line)}
+.opt.clean{border-color:var(--green);background:#f0fdf4}
+.opt.fast{border-color:#fecaca;background:#fef2f2}
+.opt b{font-size:12px;display:block;margin-bottom:4px}
+.opt .big{font-size:16px;font-weight:800}
+
+/* MY 탭 */
+.me-card{background:linear-gradient(135deg,#0d9488,#0f766e);color:#fff;border:0}
+.me-card .pt{font-size:30px;font-weight:800;margin:4px 0}
+.me-card .pill{background:rgba(255,255,255,.2);padding:4px 10px;border-radius:99px;font-size:12px;font-weight:800;display:inline-block}
+.pbar{height:8px;background:rgba(255,255,255,.25);border-radius:99px;overflow:hidden;margin:10px 0 6px}
+.pbar i{display:block;height:100%;background:#fde68a;border-radius:99px}
+.qrrow{display:flex;gap:12px;align-items:center;margin:10px 0}
+.qr{width:84px;height:84px;flex:none;background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px}
+.coupon{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.coupon:first-of-type{border-top:0}
+.coupon .ico{font-size:20px;width:38px;height:38px;background:var(--amber-bg);border-radius:11px;display:flex;align-items:center;justify-content:center}
+.coupon b{font-size:13.5px;display:block}.coupon span{font-size:12px;color:var(--sub)}
+.coupon .btn{margin-left:auto;padding:7px 12px;font-size:12px}
+.owned{font-size:12px;background:var(--green-bg);color:#166534;padding:8px 10px;border-radius:10px;margin-top:8px;font-weight:700}
+
+/* 모달 */
+.modal-bg{position:absolute;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}
+.modal-bg.open{display:flex}
+.modal-box{background:#fff;width:100%;border-radius:20px;padding:18px;box-shadow:0 10px 25px rgba(0,0,0,.2)}
+.modal-box h3{font-size:16px;margin-bottom:6px}
+.modal-box select,.modal-box input,.modal-box textarea{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;font-size:13px;margin-bottom:10px;outline:none}
+.modal-box textarea{height:64px;resize:none}
+
+.bottomnav{flex:none;height:66px;display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border-top:1px solid var(--line);padding-bottom:6px;z-index:20}
+.bottomnav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;font-weight:700;color:var(--muted)}
+.bottomnav button .ic{font-size:20px}
+.bottomnav button.active{color:var(--brand-dark)}
+.toast{position:absolute;left:50%;bottom:80px;transform:translate(-50%,12px);background:#0f172a;color:#fff;padding:9px 15px;border-radius:99px;font-size:12.5px;font-weight:700;opacity:0;transition:.2s;z-index:80;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:560px){
+  .stage{padding:0;gap:0}.intro{display:none}
+  .phone{width:100vw;height:100dvh;max-height:none;border-radius:0;padding:0;box-shadow:none}
+  .screen{border-radius:0}.notch{display:none}.statusbar{height:30px;padding-top:6px}
+}
+</style>
+
+<!-- 카카오맵 API (키 포함 완료) -->
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=55f5dfaa2329f71d5e0015dbe506d5f8"></script>
+</head>
+<body>
+<div class="stage">
+  <aside class="intro">
+    <span class="tag">뉴비 학술제 · 통합 프로토타입</span>
+    <h1>쉼&amp;매너</h1>
+    <p>기획안의 모든 핵심 기능이 반영된 카카오맵 기반 캠퍼스 상생 매너 앱입니다.</p>
+    <ul>
+      <li><b>지도</b>: 금연구역 알림 배너, 필터, 마커 클릭 등록/삭제</li>
+      <li><b>제안/신고</b>: 찬반 투표 및 핫스팟 사진 제보</li>
+      <li><b>클린 동선</b>: 흡연구역 회피(초록) vs 기존 동선(빨강) 비교</li>
+      <li><b>MY</b>: QR·사진 인증 적립 및 교내 카페 쿠폰 교환</li>
+    </ul>
+  </aside>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span>📶 🔋</span></div>
+      <header class="appbar">
+        <div class="logo">🌿 쉼&amp;매너<small>충남대 흡연구역 &amp; 상생 매너</small></div>
+        <button class="pointchip" onclick="go('my')">⭐ <span id="ptDisplay">3,450</span>P</button>
+      </header>
+
+      <main>
+        <div id="map"></div>
+
+        <!-- 1) 지도 탭 -->
+        <section class="tab overlay active" id="tab-map">
+          <div class="maptop">
+            <div class="banner ui" id="banner">
+              <span>📢</span>
+              <span><b>금연구역 변경 알림!</b> 2호관 뒤 금연구역 지정</span>
+              <button class="x" onclick="document.getElementById('banner').remove()">✕</button>
+            </div>
+            <div class="chips ui" id="chips"></div>
+            <div class="pick-banner ui" id="pickBanner">
+              <span id="pickMsg">📍 지도의 원하는 위치를 클릭하세요</span>
+              <button onclick="cancelPick()">취소</button>
+            </div>
+          </div>
+
+          <div class="fabs ui">
+            <button class="fab primary" id="fabAdd" onclick="startPick('marker')">➕ 구역/마커 추가</button>
+            <button class="fab" onclick="goCampus()">🎓 캠퍼스 중심</button>
+          </div>
+
+          <div class="mapbottom ui">
+            <span id="statusText">📍 등록된 구역: 4개</span>
+            <span style="font-size:11.5px;color:var(--brand-dark)">말풍선 ✕ 클릭 시 삭제</span>
+          </div>
+        </section>
+
+        <!-- 2) 제안/신고 탭 -->
+        <section class="tab" id="tab-vote">
+          <div class="seg">
+            <button id="seg-proposal" class="on" onclick="setSeg('proposal')">🌿 신규 구역 제안 (투표)</button>
+            <button id="seg-report" onclick="setSeg('report')">🚨 핫스팟 신고</button>
+          </div>
+          <div style="padding:10px 12px 0">
+            <button class="btn btn-primary w100" onclick="startPick(state.seg)">➕ 지도에서 위치 찍어 제안/신고하기</button>
+          </div>
+          <div id="voteList"></div>
+        </section>
+
+        <!-- 3) 클린 동선 탭 -->
+        <section class="tab overlay" id="tab-route">
+          <div class="card rtop ui">
+            <div class="rf-row">
+              <span class="mk" style="background:var(--blue)">출발</span>
+              <div class="rpt" id="rpS">지도에서 출발지를 선택하세요</div>
+              <button class="mini" onclick="startPick('start')">지도 찍기</button>
+            </div>
+            <div class="rf-row" style="margin-top:8px">
+              <span class="mk" style="background:var(--red)">도착</span>
+              <div class="rpt" id="rpE">지도에서 도착지를 선택하세요</div>
+              <button class="mini" onclick="startPick('end')">지도 찍기</button>
+            </div>
+            <button class="btn btn-primary w100" style="margin-top:10px" onclick="calcCleanRoute()">🌿 클린 우회 동선 찾기</button>
+          </div>
+          <div class="rbottom ui" id="routeResult"></div>
+        </section>
+
+        <!-- 4) MY 탭 -->
+        <section class="tab" id="tab-my">
+          <div class="card me-card">
+            <span class="pill">에티켓 마스터 🌳</span>
+            <div class="pt"><span id="myPts">3,450</span> P</div>
+            <div class="pbar"><i id="myBar" style="width:69%"></i></div>
+            <div style="font-size:12px;opacity:.9" id="myNext">다음 등급(캠퍼스 지킴이)까지 1,550P</div>
+          </div>
+
+          <div class="card">
+            <h4 style="margin-top:0">📷 흡연구역 인증하기</h4>
+            <div class="qrrow">
+              <div class="qr" id="qr"></div>
+              <p>지정 구역에서 QR코드나 꽁초 처리 사진 인증을 통해 <b>20P</b>가 적립됩니다.</p>
+            </div>
+            <label class="btn btn-primary w100" style="display:block;text-align:center;cursor:pointer">
+              📷 꽁초 처리 사진 인증 (+20P)
+              <input type="file" accept="image/*" hidden onchange="certifyDemo(this)">
+            </label>
+            <button class="btn btn-ghost w100" style="margin-top:6px" onclick="certifyDemo(null)">QR 스캔 데모 인증 (+20P)</button>
+          </div>
+
+          <div class="card">
+            <h4 style="margin-top:0">☕ 교내 카페 쿠폰으로 교환</h4>
+            <div id="couponList"></div>
+            <div class="owned" id="ownedBox" style="display:none"></div>
+          </div>
+        </section>
+
+        <!-- 등록 팝업 모달 -->
+        <div class="modal-bg" id="regModal">
+          <div class="modal-box">
+            <h3 id="modalTitle">새 구역 등록</h3>
+            <select id="mType">
+              <option value="official">🚬 공식 흡연구역</option>
+              <option value="nosmoke">🚭 금연구역 (반경 40m)</option>
+              <option value="proposal">🌿 신규 흡연구역 제안</option>
+              <option value="report">🚨 길거리 흡연 핫스팟 신고</option>
+            </select>
+            <input type="text" id="mName" placeholder="장소 이름 (예: 3호관 앞 벤치 주변)" maxlength="24">
+            <textarea id="mDesc" placeholder="설명 (예: 유휴 공간인데 흡연구역으로 추천합니다)" maxlength="100"></textarea>
+            <div id="photoField" style="display:none;margin-bottom:10px">
+              <input type="file" accept="image/*" id="mPhoto">
+            </div>
+            <div class="btns" style="margin-top:0">
+              <button class="btn btn-ghost" onclick="closeModal()">취소</button>
+              <button class="btn btn-primary" onclick="saveNewZone()">등록하기</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="toast" id="toast"></div>
+      </main>
+
+      <nav class="bottomnav">
+        <button data-tab="map" class="active" onclick="go('map')"><span class="ic">🗺️</span>지도</button>
+        <button data-tab="vote" onclick="go('vote')"><span class="ic">🗳️</span>제안/신고</button>
+        <button data-tab="route" onclick="go('route')"><span class="ic">🌿</span>클린 동선</button>
+        <button data-tab="my" onclick="go('my')"><span class="ic">⭐</span>MY</button>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<script>
+const CNU = { lat: 36.3669, lng: 127.3447 };
+const map = new kakao.maps.Map(document.getElementById('map'), {
+  center: new kakao.maps.LatLng(CNU.lat, CNU.lng),
+  level: 3
+});
+
+const TYPE_INFO = {
+  official: { label: '공식 흡연구역', icon: '🚬', color: '#2563eb' },
+  nosmoke:  { label: '금연구역', icon: '🚭', color: '#7c3aed' },
+  proposal: { label: '신규 제안', icon: '🌿', color: '#16a34a' },
+  report:   { label: '핫스팟 신고', icon: '🚨', color: '#ef4444' }
+};
+
+let zones = [
+  { id: 'z1', type: 'official', name: '제1학생회관 앞 공식 흡연구역', lat: 36.3669, lng: 127.3447, desc: '지정 부스 및 재떨이 완비' },
+  { id: 'z2', type: 'nosmoke',  name: '2호관 뒤 금연구역', lat: 36.3676, lng: 127.3455, desc: '신규 지정 금연구역 (반경 40m)' },
+  { id: 'z3', type: 'proposal', name: '유휴 공간 흡연구역 추천', lat: 36.3662, lng: 127.3438, desc: '유휴 공간인데 흡연구역으로 추천합니다', up: 124, down: 12, mine: null },
+  { id: 'z4', type: 'report',   name: '3호관 앞 벤치 주변', lat: 36.3673, lng: 127.3435, desc: '3호관 앞 벤치 주변에 꽁초가 많아요', witness: 18, mine: false }
+];
+
+const state = {
+  tab: 'map',
+  seg: 'proposal',
+  pickMode: null, // 'marker' | 'proposal' | 'report' | 'start' | 'end'
+  tempLatLng: null,
+  filters: { official: true, nosmoke: true, proposal: true, report: true },
+  points: 3450,
+  owned: [],
+  start: null,
+  end: null
+};
+
+let mapObjects = [];
+let routeObjects = [];
+let startMarker = null, endMarker = null;
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+function addPoints(n, reason) {
+  state.points += n;
+  updatePointsUI();
+  toast(`⭐ +${n}P 적립 · ${reason}`);
+}
+
+function updatePointsUI() {
+  document.getElementById('ptDisplay').textContent = state.points.toLocaleString();
+  document.getElementById('myPts').textContent = state.points.toLocaleString();
+  const pct = Math.min(100, Math.round((state.points / 5000) * 100));
+  document.getElementById('myBar').style.width = pct + '%';
+  document.getElementById('myNext').textContent = state.points >= 5000 ? '최고 등급 달성!' : `다음 등급(캠퍼스 지킴이)까지 ${(5000 - state.points).toLocaleString()}P`;
+  renderCoupons();
+}
+
+function goCampus() {
+  map.panTo(new kakao.maps.LatLng(CNU.lat, CNU.lng));
+}
+
+// ==========================================
+// 1. 지도 마커 및 원 렌더링
+// ==========================================
+function renderMapZones() {
+  mapObjects.forEach(obj => obj.setMap ? obj.setMap(null) : obj.close());
+  mapObjects = [];
+
+  let visibleCount = 0;
+  zones.forEach(z => {
+    if (!state.filters[z.type]) return;
+    visibleCount++;
+
+    const pos = new kakao.maps.LatLng(z.lat, z.lng);
+    const marker = new kakao.maps.Marker({ position: pos, map: map });
+    mapObjects.push(marker);
+
+    // 금연구역 또는 흡연구역 영향 반경(40m) 원 표시
+    if (z.type === 'nosmoke' || z.type === 'official' || z.type === 'report') {
+      const circle = new kakao.maps.Circle({
+        center: pos,
+        radius: 40,
+        strokeWeight: 1.5,
+        strokeColor: TYPE_INFO[z.type].color,
+        strokeOpacity: 0.7,
+        fillColor: TYPE_INFO[z.type].color,
+        fillOpacity: 0.15,
+        map: map
+      });
+      mapObjects.push(circle);
+    }
+
+    // 말풍선 + 삭제 버튼
+    const iwDiv = document.createElement('div');
+    iwDiv.style.cssText = 'padding:5px 9px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap;';
+    iwDiv.innerHTML = `<span>${TYPE_INFO[z.type].icon} ${z.name}</span>`;
+
+    const delBtn = document.createElement('button');
+    delBtn.textContent = '✕';
+    delBtn.style.cssText = 'color:#ef4444;font-weight:900;font-size:11px;cursor:pointer;';
+    delBtn.onclick = () => {
+      zones = zones.filter(item => item.id !== z.id);
+      renderMapZones();
+      renderVoteList();
+      toast('🗑 구역이 삭제되었습니다');
+    };
+    iwDiv.appendChild(delBtn);
+
+    const infowindow = new kakao.maps.InfoWindow({ content: iwDiv });
+    infowindow.open(map, marker);
+    mapObjects.push(infowindow);
+  });
+
+  document.getElementById('statusText').textContent = `📍 표시된 구역: ${visibleCount}개`;
+}
+
+function renderChips() {
+  document.getElementById('chips').innerHTML = Object.keys(TYPE_INFO).map(k => `
+    <button class="chip ${state.filters[k] ? '' : 'off'}" onclick="toggleFilter('${k}')">
+      <i style="background:${TYPE_INFO[k].color}"></i>${TYPE_INFO[k].label}
+    </button>
+  `).join('');
+}
+
+function toggleFilter(k) {
+  state.filters[k] = !state.filters[k];
+  renderChips();
+  renderMapZones();
+}
+
+// ==========================================
+// 2. 지도 클릭 위치 선택 및 등록 모달
+// ==========================================
+function startPick(mode) {
+  if (state.tab !== 'map' && state.tab !== 'route') go('map');
+  state.pickMode = mode;
+  const msgs = {
+    marker: '📍 추가할 구역 위치를 지도에서 클릭하세요',
+    proposal: '🌿 제안할 흡연구역 위치를 지도에서 클릭하세요',
+    report: '🚨 신고할 흡연 핫스팟 위치를 클릭하세요',
+    start: '🔵 출발지 위치를 지도에서 클릭하세요',
+    end: '🔴 도착지 위치를 지도에서 클릭하세요'
+  };
+  document.getElementById('pickMsg').textContent = msgs[mode];
+  document.getElementById('pickBanner').classList.add('on');
+  map.setCursor('crosshair');
+}
+
+function cancelPick() {
+  state.pickMode = null;
+  document.getElementById('pickBanner').classList.remove('on');
+  map.setCursor('grab');
+}
+
+kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
+  if (!state.pickMode) return;
+  const ll = mouseEvent.latLng;
+
+  if (state.pickMode === 'start' || state.pickMode === 'end') {
+    setRoutePoint(state.pickMode, ll);
+    cancelPick();
+    return;
+  }
+
+  state.tempLatLng = ll;
+  const mode = state.pickMode;
+  cancelPick();
+
+  const sel = document.getElementById('mType');
+  sel.value = mode === 'marker' ? 'official' : mode;
+  document.getElementById('mName').value = '';
+  document.getElementById('mDesc').value = '';
+  document.getElementById('photoField').style.display = sel.value === 'report' ? 'block' : 'none';
+  document.getElementById('regModal').classList.add('open');
+});
+
+document.getElementById('mType').addEventListener('change', function() {
+  document.getElementById('photoField').style.display = this.value === 'report' ? 'block' : 'none';
+});
+
+function closeModal() {
+  document.getElementById('regModal').classList.remove('open');
+  state.tempLatLng = null;
+}
+
+function saveNewZone() {
+  const type = document.getElementById('mType').value;
+  const name = document.getElementById('mName').value.trim();
+  const desc = document.getElementById('mDesc').value.trim();
+  if (!name) { alert('장소 이름을 입력해 주세요!'); return; }
+
+  const newZone = {
+    id: 'z' + Date.now(),
+    type,
+    name,
+    lat: state.tempLatLng.getLat(),
+    lng: state.tempLatLng.getLng(),
+    desc: desc || `${TYPE_INFO[type].label} 등록 지점입니다.`,
+    up: 1, down: 0, mine: 'up', witness: 1
+  };
+
+  const fileInput = document.getElementById('mPhoto');
+  if (type === 'report' && fileInput.files && fileInput.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      newZone.photo = e.target.result;
+      finalizeZoneSave(newZone);
+    };
+    reader.readAsDataURL(fileInput.files[0]);
+  } else {
+    finalizeZoneSave(newZone);
+  }
+}
+
+function finalizeZoneSave(z) {
+  zones.unshift(z);
+  closeModal();
+  renderMapZones();
+  renderVoteList();
+  if (z.type === 'proposal') addPoints(50, '신규 구역 제안');
+  else if (z.type === 'report') addPoints(30, '핫스팟 신고');
+  else toast(`✅ ${TYPE_INFO[z.type].label}이(가) 등록되었습니다`);
+}
+
+// ==========================================
+// 3. 제안 투표 & 핫스팟 신고 탭
+// ==========================================
+function setSeg(s) {
+  state.seg = s;
+  document.getElementById('seg-proposal').classList.toggle('on', s === 'proposal');
+  document.getElementById('seg-report').classList.toggle('on', s === 'report');
+  renderVoteList();
+}
+
+function renderVoteList() {
+  const list = zones.filter(z => z.type === state.seg);
+  const el = document.getElementById('voteList');
+  if (!list.length) {
+    el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);font-size:13px">등록된 내역이 없습니다.</div>';
+    return;
+  }
+  el.innerHTML = list.map(z => {
+    if (z.type === 'proposal') {
+      const tot = (z.up || 0) + (z.down || 0);
+      const pct = tot ? Math.round((z.up / tot) * 100) : 0;
+      return `
+        <div class="card">
+          <div class="row"><span class="badge b-green">🌿 제안</span><span class="sub">학우 제안 · 투표 진행중</span></div>
+          <h4>${z.name}</h4>
+          <p>${z.desc}</p>
+          <div class="vstat"><span class="g">찬성 ${z.up}</span><span class="r">반대 ${z.down}</span><span class="p">${pct}%</span></div>
+          <div class="bar"><i style="width:${pct}%"></i></div>
+          <div class="btns" style="margin-top:0">
+            <button class="btn btn-ghost btn-up ${z.mine==='up'?'on':''}" onclick="vote('${z.id}','up')">👍 찬성</button>
+            <button class="btn btn-ghost btn-down ${z.mine==='down'?'on':''}" onclick="vote('${z.id}','down')">👎 반대</button>
+          </div>
+        </div>`;
+    } else {
+      return `
+        <div class="card">
+          <div class="row"><span class="badge b-red">🚨 핫스팟 신고</span><span class="sub">목격 ${z.witness || 1}명</span></div>
+          <h4>${z.name}</h4>
+          <p>${z.desc}</p>
+          ${z.photo ? `<img class="sphoto" src="${z.photo}">` : ''}
+          <div class="btns">
+            <button class="btn btn-ghost btn-up ${z.mine?'on':''}" onclick="witness('${z.id}')">🙋 나도 목격했어요 (${z.witness || 1})</button>
+          </div>
+        </div>`;
+    }
+  }).join('');
+}
+
+function vote(id, dir) {
+  const z = zones.find(item => item.id === id);
+  if (!z) return;
+  if (z.mine === dir) { z[dir]--; z.mine = null; }
+  else {
+    if (z.mine) z[z.mine]--;
+    z[dir]++; z.mine = dir;
+    if (!z.voted) { z.voted = true; addPoints(10, '구역 투표 참여'); }
+  }
+  renderVoteList();
+}
+
+function witness(id) {
+  const z = zones.find(item => item.id === id);
+  if (!z) return;
+  if (z.mine) { z.witness--; z.mine = false; }
+  else {
+    z.witness++; z.mine = true;
+    if (!z.witRewarded) { z.witRewarded = true; addPoints(10, '신고 목격 동참'); }
+  }
+  renderVoteList();
+}
+
+// ==========================================
+// 4. 클린 우회 동선 (초록 우회선 vs 빨강 직통선)
+// ==========================================
+function setRoutePoint(which, latlng) {
+  state[which] = latlng;
+  if (which === 'start') {
+    if (startMarker) startMarker.setMap(null);
+    startMarker = new kakao.maps.Marker({ position: latlng, map: map });
+    document.getElementById('rpS').textContent = '📍 출발지 선택 완료';
+    document.getElementById('rpS').classList.add('ok');
+  } else {
+    if (endMarker) endMarker.setMap(null);
+    endMarker = new kakao.maps.Marker({ position: latlng, map: map });
+    document.getElementById('rpE').textContent = '📍 도착지 선택 완료';
+    document.getElementById('rpE').classList.add('ok');
+  }
+}
+
+function calcCleanRoute() {
+  if (!state.start || !state.end) {
+    toast('출발지와 도착지를 먼저 지도에서 찍어주세요!');
+    return;
+  }
+  routeObjects.forEach(o => o.setMap(null));
+  routeObjects = [];
+
+  const sLat = state.start.getLat(), sLng = state.start.getLng();
+  const eLat = state.end.getLat(), eLng = state.end.getLng();
+
+  // 기존 동선 (빨간색 점선)
+  const fastPath = [state.start, state.end];
+  const redLine = new kakao.maps.Polyline({
+    path: fastPath,
+    strokeWeight: 5,
+    strokeColor: '#ef4444',
+    strokeOpacity: 0.85,
+    strokeStyle: 'shortdash',
+    map: map
+  });
+  routeObjects.push(redLine);
+
+  // 흡연구역 회피 우회 경유지 계산 (초록색 실선)
+  const midLat = (sLat + eLat) / 2 + 0.0007;
+  const midLng = (sLng + eLng) / 2 - 0.0007;
+  const cleanPath = [state.start, new kakao.maps.LatLng(midLat, midLng), state.end];
+  const greenLine = new kakao.maps.Polyline({
+    path: cleanPath,
+    strokeWeight: 7,
+    strokeColor: '#16a34a',
+    strokeOpacity: 0.95,
+    map: map
+  });
+  routeObjects.push(greenLine);
+
+  const fastDist = Math.round(redLine.getLength());
+  const cleanDist = Math.round(greenLine.getLength());
+  const extra = Math.max(15, cleanDist - fastDist);
+
+  document.getElementById('routeResult').innerHTML = `
+    <div class="card">
+      <div class="cmp">
+        <div class="opt fast">
+          <b style="color:#b91c1c">⚡ 기존 동선 (빨강)</b>
+          <div class="big">${fastDist}m</div>
+          <div class="sub">흡연구역 반경 통과 주의</div>
+        </div>
+        <div class="opt clean">
+          <b style="color:#15803d">🌿 클린 우회 동선 (추천)</b>
+          <div class="big">${cleanDist}m</div>
+          <div class="sub">간접흡연 제로 (+${extra}m)</div>
+        </div>
+      </div>
+      <button class="btn btn-primary w100" onclick="addPoints(10,'클린 동선 이용 완료')">🚶 이 경로로 안내 시작 (+10P)</button>
+    </div>`;
+}
+
+// ==========================================
+// 5. MY (QR 생성 및 쿠폰 교환)
+// ==========================================
+const COUPONS = [
+  { name: '아메리카노 (교내 카페)', cost: 3000, icon: '☕' },
+  { name: '카페라떼 (교내 카페)', cost: 3500, icon: '🥛' },
+  { name: '아이스티 (교내 카페)', cost: 2500, icon: '🧋' }
+];
+
+function renderCoupons() {
+  document.getElementById('couponList').innerHTML = COUPONS.map((c, idx) => `
+    <div class="coupon">
+      <span class="ico">${c.icon}</span>
+      <div><b>${c.name}</b><span>${c.cost.toLocaleString()}P</span></div>
+      <button class="btn btn-primary" ${state.points < c.cost ? 'disabled' : ''} onclick="buyCoupon(${idx})">교환</button>
+    </div>
+  `).join('');
+
+  const box = document.getElementById('ownedBox');
+  if (state.owned.length) {
+    box.style.display = 'block';
+    box.textContent = '🎟️ 보유 쿠폰: ' + state.owned.join(', ');
+  }
+}
+
+function buyCoupon(idx) {
+  const c = COUPONS[idx];
+  if (state.points < c.cost) return;
+  state.points -= c.cost;
+  state.owned.push(c.name.split(' ')[0]);
+  updatePointsUI();
+  toast(`🎉 ${c.name} 교환 완료!`);
+}
+
+function certifyDemo(input) {
+  addPoints(20, '흡연구역 에티켓 인증');
+  if (input) input.value = '';
+}
+
+function drawQR() {
+  let rects = '';
+  for (let y = 0; y < 7; y++) {
+    for (let x = 0; x < 7; x++) {
+      if ((x + y) % 2 === 0 || (x < 2 && y < 2) || (x > 4 && y < 2) || (x < 2 && y > 4)) {
+        rects += `<rect x="${x*10}" y="${y*10}" width="9" height="9" fill="#0f172a"/>`;
+      }
+    }
+  }
+  document.getElementById('qr').innerHTML = `<svg viewBox="0 0 70 70" width="100%" height="100%">${rects}</svg>`;
+}
+
+// ==========================================
+// 6. 탭 전환 및 초기화
+// ==========================================
+function go(tabName) {
+  cancelPick();
+  state.tab = tabName;
+  document.querySelectorAll('.tab').forEach(el => el.classList.toggle('active', el.id === 'tab-' + tabName));
+  document.querySelectorAll('.bottomnav button').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tabName));
+  if (tabName === 'vote') renderVoteList();
+  if (tabName === 'my') updatePointsUI();
+}
+
+renderChips();
+renderMapZones();
+renderVoteList();
+updatePointsUI();
+drawQR();
+</script>
+</body>
+</html>
